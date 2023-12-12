@@ -35,7 +35,7 @@ function App() {
     img.onload = () => {
       canvas.width = img.width;
       canvas.height = img.height;
-      drawImage(img);
+      drawImage();
       drawBoxes();
     };
   };
@@ -61,23 +61,25 @@ function App() {
 
   const handleMouseMove = (e) => {
     if (!isDrawing.current) return;
-  
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
     currentPoint.current = {
       x: e.clientX - rect.left,
       y: e.clientY - rect.top,
     };
-  
+    drawBoxes();
     drawBox(startPoint.current, currentPoint.current);
   };
-  
 
-  const drawImage = (img) => {
+  const drawImage = () => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const img = new Image();
+    img.src = image;
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    };
   };
 
   const drawBox = (start, end) => {
@@ -91,22 +93,16 @@ function App() {
   };
 
   const drawBoxes = () => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
-    img.src = image;
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      boxes.forEach((box) => {
-        drawBox(box.start, box.end);
-      });
-    };
+    drawImage(); // Redraw the image
+    boxes.forEach((box) => {
+      drawBox(box.start, box.end);
+    });
   };
 
   const sendBoxesToBackend = () => {
-    console.log('Bounding boxes:', boxes);
     // Assuming you have a function to send boxes to the backend
     // You can use fetch or any other method to send data to the server
+    console.log('Bounding boxes:', boxes);
   };
 
   return (
