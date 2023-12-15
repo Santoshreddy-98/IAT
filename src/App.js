@@ -1,132 +1,151 @@
-import React, { useState, useRef, useEffect } from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import React, { useEffect } from 'react';
 import './App.css';
+import KonvaImageComponent from './KonvaImageComponent';
+import { Stage, Layer, Image } from 'react-konva';
+import imageSrc from './assets/body.png';
 
 function App() {
-  const [image, setImage] = useState(null);
-  const [boxes, setBoxes] = useState([]);
-  const canvasRef = useRef(null);
-  const isDrawing = useRef(false);
-  const startPoint = useRef({ x: 0, y: 0 });
-  const currentPoint = useRef({ x: 0, y: 0 });
+  const initialRectangles = [
+    { start: { x: 1359.4647216796875, y: 471.80963134765625 }, end: { x: 1634.6993408203125, y: 593.5230407714844 }, stroke: 'red', id: 'rect1' },
+    { start: { x: 1192.4586181640625, y: 446.2545166015625 }, end: { x: 1251.2003173828125, y: 513.5114440917969 }, stroke: 'red', id: 'rect2' },
+    { start: { x: 1195.328857421875, y: 456.91534423828125 }, end: { x: 1258.85205078125, y: 547.1182861328125 }, stroke: 'red', id: 'rect3' },
+    { start: { x: 690.5734252929688, y: 412.3949279785156 }, end: { x: 725.7766723632812, y: 435.9654846191406 }, stroke: 'red', id: 'rect4' },
+    { start: { x: 1225.0079345703125, y: 457.2879333496094 }, end: { x: 1346.6864013671875, y: 556.0965270996094 }, stroke: 'red', id: 'rect5' },
+  ];
+
+const [rectangles, setRectangles] = React.useState(initialRectangles);
+  const [selectedId, selectShape] = React.useState(null);
+  const [image, setImage] = React.useState(null);
+  const [imageSize, setImageSize] = React.useState({ width: 0, height: 0 });
+  const [isDrawing, setDrawing] = React.useState(false);
+  const [drawingStart, setDrawingStart] = React.useState({ x: 0, y: 0 });
+  const [drawingRect, setDrawingRect] = React.useState(null);
 
   useEffect(() => {
-    if (image) {
-      updateCanvasSize();
-    }
-  }, [image]);
+    const img = new window.Image();
+    img.src = imageSrc;
+    img.onload = () => {
+      setImage(img);
+      setImageSize({ width: img.width, height: img.height });
+    };
+  }, []);
 
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImage(e.target.result);
-        setBoxes([]);
-      };
-      reader.readAsDataURL(file);
+  const checkDeselect = (e) => {
+    const clickedOnEmpty = e.target === e.target.getStage();
+    if (clickedOnEmpty) {
+      selectShape(null);
     }
   };
 
-  const updateCanvasSize = () => {
-    const canvas = canvasRef.current;
-    const img = new Image();
-    img.src = image;
-    img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
-      drawImage(img);
-      drawBoxes();
-    };
+  const handleRectChange = (index, newAttrs) => {
+    const updatedRectangles = [...rectangles];
+    updatedRectangles[index] = newAttrs;
+    setRectangles(updatedRectangles);
   };
 
   const handleMouseDown = (e) => {
-    isDrawing.current = true;
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    startPoint.current = {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    };
-  };
-
-  const handleMouseUp = () => {
-    if (isDrawing.current) {
-      isDrawing.current = false;
-      const endPoint = { ...currentPoint.current };
-      setBoxes([...boxes, { start: startPoint.current, end: endPoint }]);
-      drawBoxes();
+    if (!isDrawing) {
+      setDrawing(true);
+      setDrawingRect({
+        start: { x: e.evt.layerX, y: e.evt.layerY },
+        end: { x: e.evt.layerX, y: e.evt.layerY },
+        stroke: 'blue',
+        id: 'drawingRect',
+      });
     }
   };
 
   const handleMouseMove = (e) => {
-    if (!isDrawing.current) return;
-  
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    currentPoint.current = {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    };
-  
-    drawBox(startPoint.current, currentPoint.current);
-  };
-  
-
-  const drawImage = (img) => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    if (isDrawing) {
+      setDrawingRect((prevRect) => ({
+        ...prevRect,
+        end: { x: e.evt.layerX, y: e.evt.layerY },
+      }));
+    }
   };
 
-  const drawBox = (start, end) => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    ctx.strokeStyle = 'red';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.rect(start.x, start.y, end.x - start.x, end.y - start.y);
-    ctx.stroke();
-  };
-
-  const drawBoxes = () => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
-    img.src = image;
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      boxes.forEach((box) => {
-        drawBox(box.start, box.end);
-      });
-    };
-  };
-
-  const sendBoxesToBackend = () => {
-    console.log('Bounding boxes:', boxes);
-    // Assuming you have a function to send boxes to the backend
-    // You can use fetch or any other method to send data to the server
+  const handleMouseUp = () => {
+    if (isDrawing) {
+      setDrawing(false);
+      if (drawingRect && drawingRect.start.x !== drawingRect.end.x && drawingRect.start.y !== drawingRect.end.y) {
+        // Only add the rectangle if it's not just a click (without drag)
+        setRectangles([...rectangles, drawingRect]);
+      }
+      setDrawingRect(null);
+    }
   };
 
   return (
     <div className="App">
-      <div className="container mt-5">
-        <input type="file" onChange={handleImageUpload} />
-        {image && (
-          <div>
-            <canvas
-              ref={canvasRef}
+      <Stage
+        width={imageSize.width}
+        height={imageSize.height}
+        onMouseDown={checkDeselect}
+        onTouchStart={checkDeselect}
+        onMouseMove={handleMouseMove}
+        onTouchMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onTouchEnd={handleMouseUp}
+      >
+        <Layer>
+          {image && (
+            <Image
+              image={image}
+              width={imageSize.width}
+              height={imageSize.height}
               onMouseDown={handleMouseDown}
-              onMouseUp={handleMouseUp}
-              onMouseMove={handleMouseMove}
+              onTouchStart={handleMouseDown}
             />
-            <button onClick={sendBoxesToBackend} className="btn btn-primary mt-3">
-              Send Boxes to Backend
-            </button>
-          </div>
-        )}
-      </div>
+          )}
+          {drawingRect && (
+            <KonvaImageComponent
+              shapeProps={{
+                x: drawingRect.start.x,
+                y: drawingRect.start.y,
+                width: drawingRect.end.x - drawingRect.start.x,
+                height: drawingRect.end.y - drawingRect.start.y,
+                stroke: drawingRect.stroke,
+                id: drawingRect.id,
+              }}
+              isSelected={drawingRect.id === selectedId}
+              onSelect={() => {
+                selectShape(drawingRect.id);
+              }}
+              onChange={(newAttrs) => {
+                setDrawingRect({
+                  ...drawingRect,
+                  start: { x: newAttrs.x, y: newAttrs.y },
+                  end: {
+                    x: newAttrs.x + newAttrs.width,
+                    y: newAttrs.y + newAttrs.height,
+                  },
+                });
+              }}
+              isDrawing
+            />
+          )}
+          {rectangles.map((rect, i) => (
+            <KonvaImageComponent
+              key={i}
+              shapeProps={{
+                x: rect.start.x,
+                y: rect.start.y,
+                width: rect.end.x - rect.start.x,
+                height: rect.end.y - rect.start.y,
+                stroke: rect.stroke,
+                id: rect.id,
+              }}
+              isSelected={rect.id === selectedId}
+              onSelect={() => {
+                selectShape(rect.id);
+              }}
+              onChange={(newAttrs) => {
+                handleRectChange(i, newAttrs);
+              }}
+            />
+          ))}
+        </Layer>
+      </Stage>
     </div>
   );
 }
