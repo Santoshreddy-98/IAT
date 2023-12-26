@@ -1,19 +1,44 @@
-import React, { useEffect } from 'react';
-import './App.css';
-import KonvaImageComponent from './KonvaImageComponent';
-import { Stage, Layer, Image } from 'react-konva';
-import imageSrc from './assets/body.png';
+import React, { useEffect } from "react";
+import "./App.css";
+import KonvaImageComponent from "./KonvaImageComponent";
+import { Stage, Layer, Image } from "react-konva";
+import imageSrc from "./assets/car.jpg";
 
 function App() {
   const initialRectangles = [
-    { start: { x: 1359.4647216796875, y: 471.80963134765625 }, end: { x: 1634.6993408203125, y: 593.5230407714844 }, stroke: 'red', id: 'rect1' },
-    { start: { x: 1192.4586181640625, y: 446.2545166015625 }, end: { x: 1251.2003173828125, y: 513.5114440917969 }, stroke: 'red', id: 'rect2' },
-    { start: { x: 1195.328857421875, y: 456.91534423828125 }, end: { x: 1258.85205078125, y: 547.1182861328125 }, stroke: 'red', id: 'rect3' },
-    { start: { x: 690.5734252929688, y: 412.3949279785156 }, end: { x: 725.7766723632812, y: 435.9654846191406 }, stroke: 'red', id: 'rect4' },
-    { start: { x: 1225.0079345703125, y: 457.2879333496094 }, end: { x: 1346.6864013671875, y: 556.0965270996094 }, stroke: 'red', id: 'rect5' },
+    {
+      start: { x: 1359.4647216796875, y: 471.80963134765625 },
+      end: { x: 1634.6993408203125, y: 593.5230407714844 },
+      stroke: "red",
+      id: "rect1",
+    },
+    {
+      start: { x: 1192.4586181640625, y: 446.2545166015625 },
+      end: { x: 1251.2003173828125, y: 513.5114440917969 },
+      stroke: "red",
+      id: "rect2",
+    },
+    {
+      start: { x: 1195.328857421875, y: 456.91534423828125 },
+      end: { x: 1258.85205078125, y: 547.1182861328125 },
+      stroke: "red",
+      id: "rect3",
+    },
+    {
+      start: { x: 690.5734252929688, y: 412.3949279785156 },
+      end: { x: 725.7766723632812, y: 435.9654846191406 },
+      stroke: "red",
+      id: "rect4",
+    },
+    {
+      start: { x: 1225.0079345703125, y: 457.2879333496094 },
+      end: { x: 1346.6864013671875, y: 556.0965270996094 },
+      stroke: "red",
+      id: "rect5",
+    },
   ];
 
-const [rectangles, setRectangles] = React.useState(initialRectangles);
+  const [rectangles, setRectangles] = React.useState(initialRectangles);
   const [selectedId, selectShape] = React.useState(null);
   const [image, setImage] = React.useState(null);
   const [imageSize, setImageSize] = React.useState({ width: 0, height: 0 });
@@ -49,8 +74,8 @@ const [rectangles, setRectangles] = React.useState(initialRectangles);
       setDrawingRect({
         start: { x: e.evt.layerX, y: e.evt.layerY },
         end: { x: e.evt.layerX, y: e.evt.layerY },
-        stroke: 'blue',
-        id: 'drawingRect',
+        stroke: "yellow",
+        id: "drawingRect",
       });
     }
   };
@@ -67,7 +92,11 @@ const [rectangles, setRectangles] = React.useState(initialRectangles);
   const handleMouseUp = () => {
     if (isDrawing) {
       setDrawing(false);
-      if (drawingRect && drawingRect.start.x !== drawingRect.end.x && drawingRect.start.y !== drawingRect.end.y) {
+      if (
+        drawingRect &&
+        drawingRect.start.x !== drawingRect.end.x &&
+        drawingRect.start.y !== drawingRect.end.y
+      ) {
         // Only add the rectangle if it's not just a click (without drag)
         setRectangles([...rectangles, drawingRect]);
       }

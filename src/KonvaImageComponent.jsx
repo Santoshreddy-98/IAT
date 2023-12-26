@@ -19,6 +19,7 @@ const KonvaImageComponent = ({ shapeProps, isSelected, onSelect, onChange }) => 
         onClick={onSelect}
         onTap={onSelect}
         ref={shapeRef}
+        
         {...shapeProps}
         draggable
         onDragEnd={(e) => {
